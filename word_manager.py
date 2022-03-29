@@ -50,5 +50,8 @@ class WordManager:
         document.merge(drawing_2 = my_drawing)
         document.merge(bw = my_bw)
         document.merge(fw = my_fw)
-        document.write(target_file_path)
+        try:
+            document.write(target_file_path)
+        except:
+            print("Something went wrong when writing a Word document. Might be it exists and is opened.")
     

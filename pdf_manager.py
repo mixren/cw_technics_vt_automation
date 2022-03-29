@@ -20,7 +20,9 @@ class PdfManager:
             return "No seams found", None   
         print(data_seam)
 
-        # data_seam has header.
+        if not self.__is_correct_data_shape(data_seam[0].values):
+            return "Wrong seams table data"
+
         no_xray_seams = self.__only_no_xray_seams(data_seam[0].values)
         if not no_xray_seams:
             return "All seams require RT 100%", None  
@@ -44,11 +46,10 @@ class PdfManager:
     def __only_no_xray_seams(self, seams: numpy.ndarray) -> List[Seam]:
         grouped_seams = []
         # (x, y) e.g. (7, 6), where x is number or rows, y - number of columns. First row: ['AM No.', 'VT', 'PT', 'RT', 'UT', 'MT'], others - Seams.
-        if seams.shape[0] > 1:
-            for s in seams[1:, :4]:
-                seam = Seam(s[0], s[1], s[2], s[3])
-                if not seam.with_xray():
-                    grouped_seams.append(seam)
+        for s in seams[1:, :4]:
+            seam = Seam(s[0], s[1], s[2], s[3])
+            if not seam.with_xray():
+                grouped_seams.append(seam)
         return grouped_seams
 
     def __spool_and_pages_from_pdf(self, pdf_path: str) -> Tuple[str, int]:
@@ -61,3 +62,6 @@ class PdfManager:
             txt_spool = page_crop_spool.extract_text()  # SPOOL No.\n13-WPP-020-1-03
             spool = re.split(' |\n', txt_spool)[-1]  # 13-WPP-020-1-03
         return spool, pages
+
+    def __is_correct_data_shape(self, seams: numpy.ndarray) -> bool:
+        seams.shape[0] >= 4
