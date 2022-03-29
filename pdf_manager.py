@@ -62,4 +62,4 @@ class PdfManager:
         return spool, pages
 
     def __is_correct_data_shape(self, seams: numpy.ndarray) -> bool:
-        seams.shape[0] >= 4
+        return len(seams.shape) == 2 and seams.shape[0] > 1 and seams.shape[1] >= 4
