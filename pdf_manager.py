@@ -13,15 +13,13 @@ class PdfManager:
     # Return: left value - sort of exception, right value - the extracted data
     # If all is extracted well left value is None
     def process_pdf(self, pdf_path: str) -> Tuple[str, MyPdfData]:
-        err_msg = None
-
         data_seam = tb.read_pdf(pdf_path, area = (26, 34, 140, 140), pages = '1')
         if not data_seam:
             return "No seams found", None   
         print(data_seam)
 
         if not self.__is_correct_data_shape(data_seam[0].values):
-            return "Wrong seams table data"
+            return "Wrong seams table data", None
 
         no_xray_seams = self.__only_no_xray_seams(data_seam[0].values)
         if not no_xray_seams:
