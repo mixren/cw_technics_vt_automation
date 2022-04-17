@@ -2,6 +2,8 @@
 __pycache__/
 dist/
 repo/
+build/
+*.spec
 pdfXML.txt
 launch.json
 How_To_Exe.txt

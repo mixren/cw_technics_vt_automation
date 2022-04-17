@@ -4,4 +4,4 @@ class StrManager:
         return s[:last_index] + "." + s[last_index+1:]
 
     def is_rasejumi_in_string(s: str) -> bool:
-        return s.lower().find('raseju') is not -1
+        return s.lower().find('raseju') != -1

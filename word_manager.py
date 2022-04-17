@@ -1,16 +1,16 @@
 from my_pdf_data_model import MyPdfData
-from mailmerge import MailMerge
+from mailmerge import MailMerge # pip install docx-mailmerge
 import os
 
 class WordManager:
 
-    template_path = 'repo\\VT-Template.docx'
+    PATH_VT_TEMPLATE = 'repo\\VT-Template.docx'
 
     def __init__(self, items=()):
         self.l = list(items)
 
     def template_exists(self) -> bool:
-        return os.path.exists(self.template_path)
+        return os.path.exists(self.PATH_VT_TEMPLATE)
 
     def create_word_from_template(self, path_template: str, path_save_folder: str, pdf_data: MyPdfData, my_drawing: str):
         table_min_len = 11
@@ -52,6 +52,7 @@ class WordManager:
         document.merge(fw = my_fw)
         try:
             document.write(target_file_path)
+            print(f"VT successfully generated for {my_drawing}")
         except:
-            print("Something went wrong when writing a Word document. Might be it exists and is opened.")
+            print(f"Error writing to a '{my_drawing}' Word document. Might be it exists and is opened.")
     

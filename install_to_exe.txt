@@ -1,0 +1,1 @@
+pyinstaller --add-binary "C:\Users\Mihails Zuravlovs\Projects\cw_technics_vt_automation\.venv\Lib\site-packages\tabula\tabula-1.0.5-jar-with-dependencies.jar;./tabula/" --noconfirm --onefile -c --icon "C:/Users/Mihails Zuravlovs/Downloads/VT_icon.ico"  "C:/Users/Mihails Zuravlovs/Projects/cw_technics_vt_automation/main.py"

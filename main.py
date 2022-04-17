@@ -5,23 +5,20 @@ from tkinter import messagebox
 from pdf_manager import PdfManager
 from word_manager import WordManager
 from str_manager import StrManager
-from threading import Thread, Lock
+from threading import Lock
+import concurrent.futures
+from multiprocessing import freeze_support
 
-#Create an instance of tkinter frame
-win= Tk()
-#Set the Geometry
-win.geometry("750x450")
-#Create a Text Box
-text= Text(win,width= 80,height=30)
-text.pack(pady=20)
-#Add a title
-win.title('VT Generator')
+'''
+Generate 34 VT files - 16 sec
+'''
+
 # Declaring a lock
 lock = Lock() ## is needed to lock MailMerge.write(), otherwise race condition.
 pdf_manager = PdfManager()
 word_manager = WordManager()
 
-def make_drawing_name(path_pdf: text):
+def make_drawing_name(path_pdf: str):
     name_pdf = os.path.splitext(os.path.basename(path_pdf))[0]
     if name_pdf.count("-") > 2:
         name_pdf = StrManager.change_last_dash_to_dot(name_pdf)
@@ -29,12 +26,13 @@ def make_drawing_name(path_pdf: text):
 
 #Define a function to clear the text
 def clear_text():
-   text.delete(1.0, END)
+    text.delete(1.0, END)
 
 # pdf_path example: C:/Users/SAMS/cw_technics_vt_automation/repo/CWT.MP21-28-162/Rasejumi ceham/MP21-28-162-03.pdf
 def generate_vt(pdf_path: str):
     folder_destination = os.path.dirname(os.path.dirname(pdf_path))
     drawing = make_drawing_name(pdf_path) 
+    print(f"Generating VT for {drawing}")
     err_msg, my_pdf_data = pdf_manager.process_pdf(pdf_path) 
     if err_msg is not None:
         #text.insert(1.0, f"{drawing} {err_msg} \n") make this shit print from a thread
@@ -47,26 +45,24 @@ def generate_vt(pdf_path: str):
 
 #Define a function to open the pdf file
 def open_pdf():
-   files = filedialog.askopenfilenames(title="Select a PDF", filetype=(("PDF Files","*.pdf"),("All Files","*.*")))
-   if not word_manager.template_exists():
-       text.insert(1.0, f"Word template does not exist. Check \"{word_manager.template_path}\"") 
-       return
+    files = filedialog.askopenfilenames(title="Select a PDF", filetype=(("PDF Files","*.pdf"),("All Files","*.*")))
+    if not word_manager.template_exists():
+        print(f"\nTemplate does not exist. Check \"{os.getcwd()}/{word_manager.PATH_VT_TEMPLATE}\"")
+        text.insert(END, f"\nTemplate does not exist. Check \"{os.getcwd()}/{word_manager.PATH_VT_TEMPLATE}\"")
+        return
 
-   #file= filedialog.askopenfilenames(parent=win, title='Select a PDF')
-   #if file:
-   #for file in files:
-   #    generate_vt(file)
-   if files:
-       clear_text()
-       text.insert(1.0, "Begin of the VT generation process \n")
-       text.update_idletasks()  
-       threads = [Thread(target=generate_vt, args=(file,)) for file in files]    
-       for thread in threads:
-           thread.start() 
-       for thread in threads:
-           thread.join()
-       text.insert(4.0, "End of the VT generation process")  
-       print("End.")
+    #file= filedialog.askopenfilenames(parent=win, title='Select a PDF')
+    #if file:
+    #for file in files:
+    #    generate_vt(file)
+    if files:
+        clear_text()
+        text.insert(END, "\nBegin of the VT generation process")
+        text.update_idletasks()
+        with concurrent.futures.ProcessPoolExecutor() as executor:
+                executor.map(generate_vt, files)
+        text.insert(END, "\nEnd of the VT generation process")  
+        print("End.")
 
 def find_all_rasejumi_file_paths(path_folder: str) -> list:
     file_paths = []
@@ -79,43 +75,59 @@ def find_all_rasejumi_file_paths(path_folder: str) -> list:
 def open_folder():
     path_folder = filedialog.askdirectory()
     if not word_manager.template_exists():
-       text.insert(1.0, f"Template does not exist. Check \"{word_manager.template_path}\"") 
-       return
+        print(f"\nTemplate does not exist. Check \"{os.getcwd()}/{word_manager.PATH_VT_TEMPLATE}\"")
+        text.insert(END, f"\nTemplate does not exist. Check \"{os.getcwd()}/{word_manager.PATH_VT_TEMPLATE}\"") 
+        return
+
     if path_folder:
-        text.insert(1.0, "Begin of the VT generation process \n")
+        import time
+        start = time.time()
+        text.insert(END, "\nBegin of the VT generation process")
         text.update_idletasks()
 
         file_paths = find_all_rasejumi_file_paths(path_folder)
-        print(file_paths)
+        print(f"{len(file_paths)} files found")
         if file_paths:
             response = messagebox.askokcancel("askokcancel", f"{len(file_paths)} files found. Generate VTs?")
             if response == 1:
-                threads = [Thread(target=generate_vt, args=(f,)) for f in file_paths]    
-                for thread in threads:
-                    thread.start() 
-                for thread in threads:
-                    thread.join()
+                with concurrent.futures.ProcessPoolExecutor() as executor:
+                    executor.map(generate_vt, file_paths)
+                
             else:
-                text.insert(3.0, "Cancelled \n")
+                text.insert(END, "\nCancelled")
 
         else:
-            text.insert(3.0, "Can't find \"rasejumi\" folder \n")
-        text.insert(4.0, "End of the VT generation process")
+            text.insert(END, "\nCan't find \"Rasejumi\" folder")
+        text.insert(END, "\nEnd of the VT generation process")
+        end = time.time()
+        print(f"Success \nTime elapsed: {round(end-start,4)} sec")
         print("End.")
         
 
 #Define function to Quit the window
 def quit_app():
-   win.destroy()
+    win.destroy()
    
-#Create a Menu
-my_menu= Menu(win)
-win.config(menu=my_menu)
-#Add dropdown to the Menus
-file_menu=Menu(my_menu,tearoff=False)
-my_menu.add_cascade(label="File",menu= file_menu)
-file_menu.add_command(label="Select folder",command=open_folder)
-file_menu.add_command(label="Select PDF",command=open_pdf)
-file_menu.add_command(label="Clear",command=clear_text)
-file_menu.add_command(label="Quit",command=quit_app)
-win.mainloop()
+if __name__ == '__main__':
+    freeze_support() # For implemented multiprocessing. Without it many windows got opened and no error message printed.
+
+    #Create an instance of tkinter frame
+    win= Tk()
+    #Set the Geometry
+    win.geometry("750x450")
+    #Create a Text Box
+    text= Text(win,width= 80,height=30)
+    text.pack(pady=20)
+    #Add a title
+    win.title('VT Generator')
+    #Create a Menu
+    my_menu= Menu(win)
+    win.config(menu=my_menu)
+    #Add dropdown to the Menus
+    file_menu=Menu(my_menu,tearoff=False)
+    my_menu.add_cascade(label="File",menu= file_menu)
+    file_menu.add_command(label="Select folder",command=open_folder)
+    file_menu.add_command(label="Select PDF",command=open_pdf)
+    file_menu.add_command(label="Clear",command=clear_text)
+    file_menu.add_command(label="Quit",command=quit_app)
+    win.mainloop()

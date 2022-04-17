@@ -1,5 +1,4 @@
-import pdfplumber
-import tabula as tb
+import tabula as tb  # needs Java 8+ to be installed,  pip install tabula-py
 import numpy
 import re
 from typing import Tuple, List
@@ -50,7 +49,8 @@ class PdfManager:
                 grouped_seams.append(seam)
         return grouped_seams
 
-    def __spool_and_pages_from_pdf(self, pdf_path: str) -> Tuple[str, int]:
+    '''def __spool_and_pages_from_pdf(self, pdf_path: str) -> Tuple[str, int]:
+        import pdfplumber
         spool = ""
         pages = 0
         with pdfplumber.open(pdf_path) as pdf:
@@ -59,7 +59,23 @@ class PdfManager:
             page_crop_spool = first_page.crop((626, 528, 718, 545), relative = False)
             txt_spool = page_crop_spool.extract_text()  # SPOOL No.\n13-WPP-020-1-03
             spool = re.split(' |\n', txt_spool)[-1]  # 13-WPP-020-1-03
+        return spool, pages'''
+
+    def __spool_and_pages_from_pdf(self, pdf_path: str) -> Tuple[str, int]:
+        '''Return number of pages and spool as "13-WPP-020-1-03"'''
+        import fitz   # pip install pymupdf
+        spool = ""
+        pages = 0
+
+        with fitz.open(pdf_path) as pdf:
+            pages = len(pdf)
+            first_page = pdf[0]  # get first page
+            rect = fitz.Rect(626, 528, 718, 545)  # define your rectangle here
+            text = first_page.get_textbox(rect)  # get text from rectangle
+            print(text)
+
         return spool, pages
+
 
     def __is_correct_data_shape(self, seams: numpy.ndarray) -> bool:
         return len(seams.shape) == 2 and seams.shape[0] > 1 and seams.shape[1] >= 4
