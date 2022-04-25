@@ -1,6 +1,5 @@
 import tabula as tb  # needs Java 8+ to be installed,  pip install tabula-py
 import numpy
-import re
 from typing import Tuple, List
 from seam_model import Seam
 from my_pdf_data_model import MyPdfData
@@ -33,7 +32,8 @@ class PdfManager:
         seam_types = data_seam_type[0].values[:, 6]  
         print(seam_types)
 
-        if not len(data_seam) == len(data_seam_type):
+        #if not len(data_seam) == len(data_seam_type):
+        if not len(data_seam[0])-1 == len(data_seam_type[0]):
             return f"Oops. Number of seams on page 1 is different from page {n_pages}.", None  
 
         return None, MyPdfData(spool, no_xray_seams, seam_types)
@@ -49,17 +49,6 @@ class PdfManager:
                 grouped_seams.append(seam)
         return grouped_seams
 
-    '''def __spool_and_pages_from_pdf(self, pdf_path: str) -> Tuple[str, int]:
-        import pdfplumber
-        spool = ""
-        pages = 0
-        with pdfplumber.open(pdf_path) as pdf:
-            first_page = pdf.pages[0]
-            pages = len(pdf.pages)
-            page_crop_spool = first_page.crop((626, 528, 718, 545), relative = False)
-            txt_spool = page_crop_spool.extract_text()  # SPOOL No.\n13-WPP-020-1-03
-            spool = re.split(' |\n', txt_spool)[-1]  # 13-WPP-020-1-03
-        return spool, pages'''
 
     def __spool_and_pages_from_pdf(self, pdf_path: str) -> Tuple[str, int]:
         '''Return number of pages and spool as "13-WPP-020-1-03"'''
@@ -71,8 +60,8 @@ class PdfManager:
             pages = len(pdf)
             first_page = pdf[0]  # get first page
             rect = fitz.Rect(626, 528, 718, 545)  # define your rectangle here
-            text = first_page.get_textbox(rect)  # get text from rectangle
-            print(text)
+            spool = first_page.get_textbox(rect)  # get text from rectangle
+            print(spool)
 
         return spool, pages
 
