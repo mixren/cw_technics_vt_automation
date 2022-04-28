@@ -2,9 +2,9 @@ import os
 from tkinter import *
 from tkinter import filedialog
 from tkinter import messagebox
-from pdf_manager import PdfManager
-from word_manager import WordManager
-from str_manager import StrManager
+from managers.pdf_manager import PdfManager
+from managers.word_manager import WordManager
+from managers.str_manager import StrManager
 from threading import Lock
 import concurrent.futures
 from multiprocessing import freeze_support
