@@ -37,8 +37,10 @@
 Требования:
 	- Подключение к серверу CWT
 	- Наличие шаблона: "../repo/VT-Template.docx"
+	- Наличие Java. Скачать: java.com
 
 
 
+source code: https://github.com/mixren/cw_technics_vt_automation
 github: @mixren
 Version 1.0.0
